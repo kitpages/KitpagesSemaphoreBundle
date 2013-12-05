@@ -1,6 +1,8 @@
 KitpagesSemaphoreBundle
 =======================
 
+[![Build Status](https://travis-ci.org/kitpages/KitpagesSemaphoreBundle.png?branch=master)](https://travis-ci.org/kitpages/KitpagesSemaphoreBundle)
+
 This bundle allows a synchronization between several parallel php process accessing a single resouce
 
 # quick start
