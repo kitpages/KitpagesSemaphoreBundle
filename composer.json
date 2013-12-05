@@ -1,0 +1,33 @@
+{
+    "name": "kitpages/semaphore-bundle",
+    "type": "symfony-bundle",
+    "description": "This is a Symfony2 bundle that provides a semaphore system.",
+    "keywords": ["semaphore", "lock"],
+    "homepage": "https://github.com/kitpages/KitpagesSemaphoreBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Philippe Le Van",
+            "homepage": "https://twitter.com/plv"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "symfony/framework-bundle": "~2.3",
+        "symfony/console": "~2.3",
+        "doctrine/orm": "~2.2"
+    },
+    "require-dev": {
+        "symfony/class-loader": "~2.3",
+        "symfony/yaml": "~2.3",
+        "symfony/finder": "~2.3",
+        "symfony/browser-kit": "~2.3",
+        "beberlei/DoctrineExtensions": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Kitpages\\SemaphoreBundle": ""
+        }
+    },
+    "target-dir": "Kitpages/SemaphoreBundle"
+}
