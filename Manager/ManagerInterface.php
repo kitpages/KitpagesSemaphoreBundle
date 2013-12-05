@@ -6,8 +6,6 @@
 
 namespace Kitpages\SemaphoreBundle\Manager;
 
-use Kitpages\SemaphoreBundle\Entity\Semaphore;
-
 interface ManagerInterface
 {
     public function aquire($key);

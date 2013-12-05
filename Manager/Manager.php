@@ -6,7 +6,6 @@
 namespace Kitpages\SemaphoreBundle\Manager;
 
 use Doctrine\DBAL\Driver\Connection;
-use Kitpages\SemaphoreBundle\Entity\Semaphore;
 
 class Manager
     implements ManagerInterface
