@@ -3,9 +3,11 @@ KitpagesSemaphoreBundle
 
 [![Build Status](https://travis-ci.org/kitpages/KitpagesSemaphoreBundle.png?branch=master)](https://travis-ci.org/kitpages/KitpagesSemaphoreBundle)
 
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/e6c4a363-630d-4036-8c73-b93407f08043/small.png)](https://insight.sensiolabs.com/projects/e6c4a363-630d-4036-8c73-b93407f08043)
+
 This bundle allows a synchronization between several parallel php process accessing a single resouce
 
-# quick start
+## quick start
 
 ```php
 // get manager
@@ -20,21 +22,21 @@ $semaphoreManager->aquire("my_semaphore_name");
 $semaphoreManager->release("my_semaphore_name");
 ```
 
-# Features
+## Features
 
 * shared semaphore between several parallel php processes (saved in DB for the moment)
 * deadlock detection : consider a semaphore as dead after a configurable duration
 
-# Status
+## Status
 
 * stable, tested and under travis-ci
 
-# Coming features
+## Coming features
 
 * implement a new manager with a faster storage (no BC break)
 * write a new log with monolog every time a deadlock is detected (no BC break)
 
-# Config
+## Config
 
 default values are 0.1s for pooling sleep time and 5s for deadlock duration
 
