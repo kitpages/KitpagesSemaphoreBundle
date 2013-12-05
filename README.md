@@ -1,6 +1,8 @@
 KitpagesSemaphoreBundle
 =======================
 
+This bundle allows a synchronization between several parallel php process accessing a single resouce
+
 # quick start
 
 ```php
@@ -8,25 +10,34 @@ KitpagesSemaphoreBundle
 $semaphoreManager = $this->get("kitpages_semaphore.manager");
 
 // wait for the semaphore disponibility
-$semaphore = $semaphore->aquire($key);
+$semaphoreManager->aquire("my_semaphore_name");
 
-// now the semaphore is locked for me
-try {
-    // do whatever
+// do someting interesting with the protected resource
 
-    // realease the semaphore
-    $semaphoreManager->release($key);
-} catch (Exception $e) {
-    // release the semaphore
-    $semaphoreManager->release($key);
-    throw $e;
-}
+// release the semaphore
+$semaphoreManager->release("my_semaphore_name");
 ```
+
+# Features
+
+* shared semaphore between several parallel php processes (saved in DB for the moment)
+* deadlock detection : consider a semaphore as dead after a configurable duration
+
+# Status
+
+* stable, tested and under travis-ci
+
+# Coming features
+
+* implement a new manager with a faster storage (no BC break)
+* write a new log with monolog every time a deadlock is detected (no BC break)
 
 # Config
 
+default values are 0.1s for pooling sleep time and 5s for deadlock duration
+
 ```yaml
 kitpages_semaphore:
-    sleep_time_microsecond: 100
+    sleep_time_microseconds: 100000
+    dead_lock_microseconds: 5000000
 ```
-
