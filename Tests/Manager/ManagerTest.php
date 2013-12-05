@@ -19,7 +19,7 @@ class ManagerTest extends BundleOrmTestCase
 
     public function testBasicSemaphore()
     {
-        $manager = new Manager($this->getEntityManager()->getConnection(), 500000, 4000000);
+        $manager = new Manager($this->getEntityManager()->getConnection(), 100000, 4000000);
         $startTime = microtime(true);
         $manager->aquire("my_key");
         $duration = microtime(true) - $startTime;
@@ -35,7 +35,7 @@ class ManagerTest extends BundleOrmTestCase
 
     public function testExpiration()
     {
-        $manager = new Manager($this->getEntityManager()->getConnection(), 500000, 4000000);
+        $manager = new Manager($this->getEntityManager()->getConnection(), 100000, 4000000);
         $startTime = microtime(true);
         $manager->aquire("my_key");
         $duration = microtime(true) - $startTime;
