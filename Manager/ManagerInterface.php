@@ -10,7 +10,6 @@ interface ManagerInterface
 {
     /**
      * @param string $key
-     * @return boolean
      */
     public function aquire($key);
 

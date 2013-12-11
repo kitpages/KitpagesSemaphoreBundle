@@ -43,6 +43,7 @@ class Manager
     {
         $locked = true;
         while ($locked == true) {
+            $this->connexion->beginTransaction();
             $stmt = $this->connexion->prepare(
                 " SELECT * from kitpages_semaphore where `key`= :key "
             );
@@ -58,8 +59,9 @@ class Manager
                 $statement->bindValue(":key", $key, \PDO::PARAM_STR);
                 $statement->bindValue(":locked", true, \PDO::PARAM_BOOL);
                 $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
-
-                return $statement->execute();
+                $statement->execute();
+                $this->connexion->commit();
+                return;
             }
 
             $locked = $selectResult["locked"];
@@ -72,7 +74,9 @@ class Manager
                 $statement->bindValue(":key", $key, \PDO::PARAM_STR);
                 $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
 
-                return $statement->execute();
+                $statement->execute();
+                $this->connexion->commit();
+                return;
 
             } elseif ($locked == false) {
                 $statement = $this->connexion->prepare(
@@ -82,9 +86,11 @@ class Manager
                 $statement->bindValue(":locked", true, \PDO::PARAM_BOOL);
                 $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
 
-                return $statement->execute();
+                $statement->execute();
+                $this->connexion->commit();
+                return;
             }
-
+            $this->connexion->commit();
             usleep($this->sleepTimeMicroseconds);
         }
     }
