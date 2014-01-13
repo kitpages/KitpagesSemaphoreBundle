@@ -6,6 +6,7 @@
 namespace Kitpages\SemaphoreBundle\Manager;
 
 use Doctrine\DBAL\Driver\Connection;
+use Psr\Log\LoggerInterface;
 
 class Manager
     implements ManagerInterface
@@ -19,11 +20,20 @@ class Manager
     /** @var  int */
     protected $deadlockMicroseconds;
 
-    public function __construct(Connection $connexion, $sleepTimeMicroseconds, $deadLockMicroseconds)
+    /** @var \Psr\Log\LoggerInterface */
+    protected $logger;
+
+    public function __construct(
+        Connection $connexion,
+        $sleepTimeMicroseconds,
+        $deadLockMicroseconds,
+        LoggerInterface $logger
+    )
     {
         $this->connexion = $connexion;
         $this->sleepTimeMicroseconds = $sleepTimeMicroseconds;
         $this->deadlockMicroseconds = $deadLockMicroseconds;
+        $this->logger = $logger;
     }
 
     protected function microSecondsTime()
@@ -68,6 +78,10 @@ class Manager
             $microtime = $selectResult["microtime"];
 
             if (true == $locked && $this->microSecondsTime() >= $microtime + $this->deadlockMicroseconds) {
+                $backtraceList = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+                $backtrace = $backtraceList[0];
+                $now = new \DateTime();
+                $this->logger->warning("Dead lock detected at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
                 $statement = $this->connexion->prepare(
                     "UPDATE kitpages_semaphore set `microtime`=:microtime WHERE `key`=:key"
                 );

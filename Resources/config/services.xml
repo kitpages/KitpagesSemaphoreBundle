@@ -13,6 +13,8 @@
             <argument type="service" id="database_connection"/>
             <argument>%kitpages_semaphore.sleep_time_microseconds%</argument>
             <argument>%kitpages_semaphore.dead_lock_microseconds%</argument>
+            <argument type="service" id="logger"/>
+            <tag name="monolog.logger" channel="kitpages_semaphore"/>
         </service>
     </services>
 
