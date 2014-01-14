@@ -26,6 +26,7 @@ $semaphoreManager->release("my_semaphore_name");
 
 * shared semaphore between several parallel php processes (saved in DB for the moment)
 * deadlock detection : consider a semaphore as dead after a configurable duration
+* logging system for deadlock on a specific channel in monolog (channel : kitpages_semaphore)
 
 ## Status
 
@@ -34,7 +35,6 @@ $semaphoreManager->release("my_semaphore_name");
 ## Coming features
 
 * implement a new manager with a faster storage (no BC break)
-* write a new log with monolog every time a deadlock is detected (no BC break)
 
 ## Config
 
