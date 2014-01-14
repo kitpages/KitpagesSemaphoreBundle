@@ -31,7 +31,7 @@ $semaphoreManager->release("my_semaphore_name");
 ## Installation
 ------------
 
-Using [Composer](http://getcomposer.org/), just `$ composer require tbbc/money-bundle` package or:
+Using [Composer](http://getcomposer.org/), just `$ composer require kitpages/semaphore-bundle` package or:
 
 ```javascript
 {
