@@ -28,15 +28,36 @@ $semaphoreManager->release("my_semaphore_name");
 * deadlock detection : consider a semaphore as dead after a configurable duration
 * logging system for deadlock on a specific channel in monolog (channel : kitpages_semaphore)
 
-## Status
+## Installation
+------------
 
-* stable, tested and under travis-ci
+Using [Composer](http://getcomposer.org/), just `$ composer require tbbc/money-bundle` package or:
 
-## Coming features
+```javascript
+{
+  "require": {
+    "kitpages/semaphore-bundle": "~1.2"
+  }
+}
+```
 
-* implement a new manager with a faster storage (no BC break)
+Then add the bundle in AppKernel :
 
-## Config
+```php
+    public function registerBundles()
+    {
+        $bundles = array(
+            // ...
+            // use of doctrine (dbal only) and monolog
+            new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
+            new Symfony\Bundle\MonologBundle\MonologBundle(),
+            // the bundle itself
+            new Kitpages\SemaphoreBundle\KitpagesSemaphoreBundle(),
+        );
+    }
+```
+
+The add configuration in your config.yml.
 
 default values are 0.1s for pooling sleep time and 5s for deadlock duration
 
@@ -45,3 +66,36 @@ kitpages_semaphore:
     sleep_time_microseconds: 100000
     dead_lock_microseconds: 5000000
 ```
+
+create the needed db table
+
+```bash
+php app/console doctrine:schema:update --force
+```
+
+## Status
+
+* stable, tested and under travis-ci
+
+## Versions
+
+2014-01-14 : v1.2.0 : logger for dead lock
+
+* no BC break
+* new : use monolog on the channel "kitpages_semaphore" to send a warning for every deadlock
+* fix : dependencies in composer.json
+* enh : more unit testing for configuration parser and service initialisation in the DIC
+* enh : Readme rewriting
+
+2013-12-11 : v1.1.0 : atomicity in aquire-release process
+
+* no BC Break
+* new : add a db transaction around the aquire-release process to garanty atomicity
+
+2013-12-05 : v1.0.0 : first release
+
+## Coming features
+
+* implement a new manager with a faster storage (no BC break)
+
+
