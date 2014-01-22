@@ -2,3 +2,4 @@
 vendor/
 composer.lock
 Tests/app/cache
+Tests/app/data

@@ -9,7 +9,6 @@ class AppKernel extends Kernel
     {
         $bundles = array(
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
-            new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new Symfony\Bundle\MonologBundle\MonologBundle(),
             new Kitpages\SemaphoreBundle\KitpagesSemaphoreBundle(),
         );

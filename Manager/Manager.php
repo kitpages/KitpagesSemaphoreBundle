@@ -5,14 +5,13 @@
  */
 namespace Kitpages\SemaphoreBundle\Manager;
 
-use Doctrine\DBAL\Driver\Connection;
 use Psr\Log\LoggerInterface;
 
 class Manager
     implements ManagerInterface
 {
-    /** @var Connection */
-    protected $connexion = null;
+    /** @var  string */
+    protected $fileDirectory;
 
     /** @var int */
     protected $sleepTimeMicroseconds;
@@ -24,16 +23,19 @@ class Manager
     protected $logger;
 
     public function __construct(
-        Connection $connexion,
         $sleepTimeMicroseconds,
         $deadLockMicroseconds,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        $fileDirectory
     )
     {
-        $this->connexion = $connexion;
         $this->sleepTimeMicroseconds = $sleepTimeMicroseconds;
         $this->deadlockMicroseconds = $deadLockMicroseconds;
         $this->logger = $logger;
+        $this->fileDirectory = $fileDirectory;
+        if (!is_dir($this->fileDirectory)) {
+            mkdir($this->fileDirectory, 0777, true);
+        }
     }
 
     protected function microSecondsTime()
@@ -46,65 +48,88 @@ class Manager
         return $microtime;
     }
 
+    protected function getFileName($key)
+    {
+        return $this->fileDirectory.'/'.$key.".csv";
+    }
+
+    /**
+     * @param boolean $locked
+     * @param int $microtime
+     */
+    protected function generateFileContent($locked, $microtime = null)
+    {
+        if (is_null($microtime)) {
+            $microtime = $this->microSecondsTime();
+        }
+        $lockedString = $locked ? '1' : '0';
+        return $lockedString.';'.$microtime;
+    }
+
+    protected function readFile($fp)
+    {
+        $content = fread($fp, 100);
+        $tab = explode(";", $content);
+        return array(
+            "locked" => ($tab[0] == "1"),
+            "microtime" => intval($tab[1])
+        );
+    }
+    protected function writeAndClose($fp, $content)
+    {
+        ftruncate($fp, 0);    //Truncate the file to 0
+        rewind($fp);
+        fwrite($fp, $content);    //Write the new Hit Count
+        fflush($fp);
+        flock($fp, LOCK_UN);    //Unlock File
+        fclose($fp);
+    }
+    public function deleteFile($key)
+    {
+        @unlink($this->getFileName($key));
+    }
+
     /**
      * @inheritdoc
      */
     public function aquire($key)
     {
+        $pid = getmypid();
         $locked = true;
+        $this->logger->debug("[$pid] acquire requested, key=$key");
+        // get file pointer
+        if (!is_file($this->getFileName($key))) {
+            file_put_contents($this->getFileName($key), $this->generateFileContent(true));
+            return;
+        }
+
         while ($locked == true) {
-            $this->connexion->beginTransaction();
-            $stmt = $this->connexion->prepare(
-                " SELECT * from kitpages_semaphore where `key`= :key "
-            );
-            $stmt->bindValue(":key", $key, \PDO::PARAM_STR);
-            $stmt->execute();
-            $selectResult = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-
-            if (!$selectResult) {
-                $statement = $this->connexion->prepare(
-                    "INSERT INTO kitpages_semaphore (`key`, `locked`, `microtime`) VALUES (:key, :locked, :microtime)"
-                );
-                $statement->bindValue(":key", $key, \PDO::PARAM_STR);
-                $statement->bindValue(":locked", true, \PDO::PARAM_BOOL);
-                $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
-                $statement->execute();
-                $this->connexion->commit();
-                return;
+            $fp = fopen($this->getFileName($key), "r+");
+            $this->logger->debug("[$pid] check lock, before request, key=$key");
+            if (!flock($fp, LOCK_EX)) {
+                throw new \RuntimeException("kitpages_semaphore, [$pid] flock failed");
             }
-
-            $locked = $selectResult["locked"];
-            $microtime = $selectResult["microtime"];
+            $content = $this->readFile($fp);
+            $locked = $content["locked"];
+            $microtime = $content["microtime"];
 
             if (true == $locked && $this->microSecondsTime() >= $microtime + $this->deadlockMicroseconds) {
                 $backtraceList = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
                 $backtrace = $backtraceList[0];
                 $now = new \DateTime();
-                $this->logger->warning("Dead lock detected at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
-                $statement = $this->connexion->prepare(
-                    "UPDATE kitpages_semaphore set `microtime`=:microtime WHERE `key`=:key"
-                );
-                $statement->bindValue(":key", $key, \PDO::PARAM_STR);
-                $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
+                $this->logger->warning("[$pid] Dead lock detected at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
 
-                $statement->execute();
-                $this->connexion->commit();
+                $this->writeAndClose($fp, $this->generateFileContent(true));
                 return;
 
             } elseif ($locked == false) {
-                $statement = $this->connexion->prepare(
-                    "UPDATE kitpages_semaphore set `locked`=:locked, `microtime`=:microtime WHERE `key`=:key"
-                );
-                $statement->bindValue(":key", $key, \PDO::PARAM_STR);
-                $statement->bindValue(":locked", true, \PDO::PARAM_BOOL);
-                $statement->bindValue(":microtime", $this->microSecondsTime(), \PDO::PARAM_INT);
-
-                $statement->execute();
-                $this->connexion->commit();
+                $this->writeAndClose($fp, $this->generateFileContent(true));
+                $this->logger->debug("[$pid] aquire obtained request done, key=$key");
                 return;
             }
-            $this->connexion->commit();
+            $this->logger->debug("[$pid] aquire not obtained, waiting, key=$key");
+            flock($fp, LOCK_UN);    //Unlock File
+            fclose($fp);
             usleep($this->sleepTimeMicroseconds);
         }
     }
@@ -114,10 +139,13 @@ class Manager
      */
     public function release($key)
     {
-        $statement = $this->connexion->prepare("UPDATE kitpages_semaphore set `locked`=:locked WHERE `key`=:key");
-        $statement->bindValue(":key", $key, \PDO::PARAM_STR);
-        $statement->bindValue(":locked", false, \PDO::PARAM_BOOL);
-
-        return $statement->execute();
+        $pid = getmypid();
+        $this->logger->debug("[$pid] release, key=$key");
+        $fp = fopen($this->getFileName($key), "r+");
+        if (!flock($fp, LOCK_EX)) {
+            throw new \RuntimeException("kitpages_semaphore, [$pid] flock failed");
+        }
+        $this->writeAndClose($fp, $this->generateFileContent(false));
+        return;
     }
 }

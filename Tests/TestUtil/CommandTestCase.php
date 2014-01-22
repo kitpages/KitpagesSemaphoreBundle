@@ -32,7 +32,7 @@ abstract class CommandTestCase extends WebTestCase
         fseek($fp, 0);
         $output = "";
         while (!feof($fp)) {
-            $output .= fread($fp, 4096)."\n";
+            $output .= fread($fp, 8192);
         }
         fclose($fp);
 

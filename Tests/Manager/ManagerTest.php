@@ -2,12 +2,10 @@
 namespace Kitpages\SemaphoreBundle\Tests\Manager;
 
 use Kitpages\SemaphoreBundle\Manager\Manager;
-use Kitpages\SemaphoreBundle\Tests\BundleOrmTestCase;
-use Doctrine\ORM\EntityManager;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 
-class ManagerTest extends BundleOrmTestCase
+class ManagerTest extends \PHPUnit_Framework_TestCase
 {
     /** @var  Manager */
     protected $manager;
@@ -23,13 +21,16 @@ class ManagerTest extends BundleOrmTestCase
         parent::setUp();
 
         $this->logger = new Logger('name');
-        $this->loggerTestHandler = new TestHandler();
+        $this->loggerTestHandler = new TestHandler(Logger::WARNING);
         $this->logger->pushHandler($this->loggerTestHandler);
+        foreach (glob(__DIR__.'/../app/data/kitpages_semaphore/*.csv') as $file) {
+            unlink($file);
+        }
         $this->manager = new Manager(
-            $this->getEntityManager()->getConnection(),
             100000,
             4000000,
-            $this->logger
+            $this->logger,
+            __DIR__.'/../app/data/kitpages_semaphore'
         );
     }
 
@@ -73,4 +74,5 @@ class ManagerTest extends BundleOrmTestCase
         $message = $record["message"];
         $this->assertEquals(1, preg_match('/Dead lock detected at.+\\/Tests\\/Manager\\/ManagerTest\\.php\\(\d+\)/',$message));
     }
+
 }

@@ -6,17 +6,14 @@ kitpages_semaphore:
     sleep_time_microseconds: 100000
     dead_lock_microseconds: 5000000
 
-doctrine:
-    dbal:
-        driver:   "pdo_sqlite"
-        path:     /tmp/sqlite-test.db
-        charset:  UTF8
-    orm:
-        auto_mapping: true
-
 monolog:
     handlers:
         main:
             type:   stream
             path:   "%kernel.logs_dir%/%kernel.environment%.log"
             level:  debug
+        app_log:
+            type:   stream
+            path:   "%kernel.logs_dir%/semaphore-%kernel.environment%.log"
+            level:  debug
+            channels: [kitpages_semaphore, app]

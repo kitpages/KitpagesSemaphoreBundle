@@ -48,8 +48,7 @@ Then add the bundle in AppKernel :
     {
         $bundles = array(
             // ...
-            // use of doctrine (dbal only) and monolog
-            new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
+            // use of  monolog
             new Symfony\Bundle\MonologBundle\MonologBundle(),
             // the bundle itself
             new Kitpages\SemaphoreBundle\KitpagesSemaphoreBundle(),
@@ -67,17 +66,16 @@ kitpages_semaphore:
     dead_lock_microseconds: 5000000
 ```
 
-create the needed db table
-
-```bash
-php app/console doctrine:schema:update --force
-```
-
 ## Status
 
 * stable, tested and under travis-ci
 
 ## Versions
+
+2014-01-22 : v1.3.0 : refactoring based on file lock
+
+* no BC break
+* used file lock instead of SQL transaction
 
 2014-01-14 : v1.2.0 : logger for dead lock
 
