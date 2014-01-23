@@ -51,6 +51,15 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $this->manager->aquire("my_key");
         $duration2 = microtime(true) - $startTime;
         $this->assertTrue($duration2 < 3);
+        $this->manager->release("my_key");
+
+        // check unused release
+        $this->manager->release("my_key");
+        $loggerRecordList = $this->loggerTestHandler->getRecords();
+        $this->assertEquals(1, count($loggerRecordList));
+        $record = $loggerRecordList[0];
+        $message = $record["message"];
+        $this->assertEquals(1, preg_match('/Realease requested, but semaphore not locked/',$message));
 
     }
 
@@ -72,7 +81,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, count($loggerRecordList));
         $record = $loggerRecordList[0];
         $message = $record["message"];
-        $this->assertEquals(1, preg_match('/Dead lock detected at.+\\/Tests\\/Manager\\/ManagerTest\\.php\\(\d+\)/',$message));
+        $this->assertEquals(1, preg_match('/Dead lock detected.+\\/Tests\\/Manager\\/ManagerTest\\.php\\(\d+\)/',$message));
     }
 
 }

@@ -145,8 +145,16 @@ class Manager
         if (!flock($fp, LOCK_EX)) {
             throw new \RuntimeException("kitpages_semaphore, [$pid] flock failed");
         }
+        $content = $this->readFile($fp);
+        $locked = $content["locked"];
+        if (!$locked) {
+            $backtraceList = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            $backtrace = $backtraceList[0];
+            $now = new \DateTime();
+            $this->logger->warning("[$pid] Realease requested, but semaphore not locked, at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
+        }
         $this->writeAndClose($fp, $this->generateFileContent(false));
-        $this->logger->debug("[$pid] release, key=$key");
+        $this->logger->debug("[$pid] release ok, key=$key");
         return;
     }
 }
