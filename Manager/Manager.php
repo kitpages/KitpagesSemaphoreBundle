@@ -100,12 +100,13 @@ class Manager
         // get file pointer
         if (!is_file($this->getFileName($key))) {
             file_put_contents($this->getFileName($key), $this->generateFileContent(true));
+            $this->logger->debug("[$pid] aquire obtained loopCount=0, key=$key");
             return;
         }
+        $loopCount = 0;
 
         while ($locked == true) {
             $fp = fopen($this->getFileName($key), "r+");
-            $this->logger->debug("[$pid] check lock, before request, key=$key");
             if (!flock($fp, LOCK_EX)) {
                 throw new \RuntimeException("kitpages_semaphore, [$pid] flock failed");
             }
@@ -117,19 +118,19 @@ class Manager
                 $backtraceList = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
                 $backtrace = $backtraceList[0];
                 $now = new \DateTime();
-                $this->logger->warning("[$pid] Dead lock detected at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
+                $this->logger->warning("[$pid] Dead lock detected, loopCount=$loopCount , at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
 
                 $this->writeAndClose($fp, $this->generateFileContent(true));
                 return;
 
             } elseif ($locked == false) {
                 $this->writeAndClose($fp, $this->generateFileContent(true));
-                $this->logger->debug("[$pid] aquire obtained request done, key=$key");
+                $this->logger->debug("[$pid] aquire obtained, loopCount=$loopCount, key=$key");
                 return;
             }
-            $this->logger->debug("[$pid] aquire not obtained, waiting, key=$key");
             flock($fp, LOCK_UN);    //Unlock File
             fclose($fp);
+            $loopCount ++;
             usleep($this->sleepTimeMicroseconds);
         }
     }
@@ -140,12 +141,12 @@ class Manager
     public function release($key)
     {
         $pid = getmypid();
-        $this->logger->debug("[$pid] release, key=$key");
         $fp = fopen($this->getFileName($key), "r+");
         if (!flock($fp, LOCK_EX)) {
             throw new \RuntimeException("kitpages_semaphore, [$pid] flock failed");
         }
         $this->writeAndClose($fp, $this->generateFileContent(false));
+        $this->logger->debug("[$pid] release, key=$key");
         return;
     }
 }
