@@ -14,6 +14,7 @@
             <argument>%kitpages_semaphore.dead_lock_microseconds%</argument>
             <argument type="service" id="logger"/>
             <argument>%kernel.root_dir%/data/kitpages_semaphore</argument>
+            <argument type="service" id="debug.stopwatch" on-invalid="null" />
             <tag name="monolog.logger" channel="kitpages_semaphore"/>
         </service>
     </services>

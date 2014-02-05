@@ -53,13 +53,11 @@ class OrderingTest extends CommandTestCase
         for ($i = 1 ; $i <= $nbProcess ; $i++) {
             $processList["process_$i"] = new Process($this->getCmd('kitpages:semaphore:aquire', $i).' >> '.$logFile);
             $processList["process_$i"]->start();
-//            echo (time() - $now) . "- aquire started $i\n";
         }
         sleep(1);
         for ($i = 1 ; $i <= $nbProcess ; $i++) {
             $process = new Process($this->getCmd('kitpages:semaphore:release'));
             $process->run();
-//            echo (time() - $now) . " - release ran $i\n";
         }
         sleep(1);
         $content = file_get_contents($logFile);

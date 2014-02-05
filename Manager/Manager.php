@@ -6,6 +6,7 @@
 namespace Kitpages\SemaphoreBundle\Manager;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class Manager
     implements ManagerInterface
@@ -22,11 +23,15 @@ class Manager
     /** @var \Psr\Log\LoggerInterface */
     protected $logger;
 
+    /** @var  Stopwatch */
+    protected $stopwatch;
+
     public function __construct(
         $sleepTimeMicroseconds,
         $deadLockMicroseconds,
         LoggerInterface $logger,
-        $fileDirectory
+        $fileDirectory,
+        Stopwatch $stopwatch = null
     )
     {
         $this->sleepTimeMicroseconds = $sleepTimeMicroseconds;
@@ -36,6 +41,7 @@ class Manager
         if (!is_dir($this->fileDirectory)) {
             mkdir($this->fileDirectory, 0777, true);
         }
+        $this->stopwatch = $stopwatch;
     }
 
     protected function microSecondsTime()
@@ -89,6 +95,20 @@ class Manager
         @unlink($this->getFileName($key));
     }
 
+    protected function stopwatchStart($message)
+    {
+        if ($this->stopwatch) {
+            $this->stopwatch->start("Semaphore::".$message);
+        }
+    }
+
+    protected function stopwatchStop($message)
+    {
+        if ($this->stopwatch) {
+            $this->stopwatch->stop("Semaphore::".$message);
+        }
+    }
+
     /**
      * @inheritdoc
      */
@@ -97,10 +117,13 @@ class Manager
         $pid = getmypid();
         $locked = true;
         $this->logger->debug("[$pid] acquire requested, key=$key");
+        $this->stopwatchStart('aquire_requested');
         // get file pointer
         if (!is_file($this->getFileName($key))) {
             file_put_contents($this->getFileName($key), $this->generateFileContent(true));
             $this->logger->debug("[$pid] aquire obtained loopCount=0, key=$key");
+            $this->stopwatchStop('aquire_requested');
+            $this->stopwatchStart('aquire_obtained');
             return;
         }
         $loopCount = 0;
@@ -121,11 +144,15 @@ class Manager
                 $this->logger->warning("[$pid] Dead lock detected, loopCount=$loopCount , at ".$now->format(DATE_RFC2822)." in ".$backtrace["file"].'('.$backtrace["line"].')');
 
                 $this->writeAndClose($fp, $this->generateFileContent(true));
+                $this->stopwatchStop('aquire_requested');
+                $this->stopwatchStart('aquire_obtained');
                 return;
 
             } elseif ($locked == false) {
                 $this->writeAndClose($fp, $this->generateFileContent(true));
                 $this->logger->debug("[$pid] aquire obtained, loopCount=$loopCount, key=$key");
+                $this->stopwatchStop('aquire_requested');
+                $this->stopwatchStart('aquire_obtained');
                 return;
             }
             flock($fp, LOCK_UN);    //Unlock File
@@ -155,6 +182,7 @@ class Manager
         }
         $this->writeAndClose($fp, $this->generateFileContent(false));
         $this->logger->debug("[$pid] release ok, key=$key");
+        $this->stopwatchStop('aquire_obtained');
         return;
     }
 }
