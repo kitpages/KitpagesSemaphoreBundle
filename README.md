@@ -5,7 +5,7 @@ KitpagesSemaphoreBundle
 
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/e6c4a363-630d-4036-8c73-b93407f08043/small.png)](https://insight.sensiolabs.com/projects/e6c4a363-630d-4036-8c73-b93407f08043)
 
-This bundle allows a synchronization between several parallel php process accessing a single resouce
+This bundle allows a protection between several parallel php process accessing a single resource
 
 ## quick start
 
@@ -27,6 +27,7 @@ $semaphoreManager->release("my_semaphore_name");
 * shared semaphore between several parallel php processes (saved in DB for the moment)
 * deadlock detection : consider a semaphore as dead after a configurable duration
 * logging system for deadlock on a specific channel in monolog (channel : kitpages_semaphore)
+* stopwatch to see semaphore usage in the timeline of the symfony debug toolbar
 
 ## Installation
 ------------
@@ -72,6 +73,13 @@ kitpages_semaphore:
 
 ## Versions
 
+2014-02-11 : v1.4.0 : addded semaphore usage in the timeline of the SF2 debug toolbar
+
+* no BC break
+* new : added stopwatch to add semaphore usage in the timeline of the SF2 debug toolbar
+* new : debug log less verbose
+* new : warning log added on release on a not locked semaphore
+
 2014-01-22 : v1.3.0 : refactoring based on file lock
 
 * no BC break
@@ -92,8 +100,5 @@ kitpages_semaphore:
 
 2013-12-05 : v1.0.0 : first release
 
-## Coming features
-
-* implement a new manager with a faster storage (no BC break)
 
 
