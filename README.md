@@ -32,12 +32,12 @@ $semaphoreManager->release("my_semaphore_name");
 ## Installation
 ------------
 
-Using [Composer](http://getcomposer.org/), just `$ composer require tbbc/money-bundle` package or:
+Using [Composer](http://getcomposer.org/), just `$ composer require kitpages/semaphore-bundle` package or:
 
 ```javascript
 {
   "require": {
-    "kitpages/semaphore-bundle": "~1.2"
+    "kitpages/semaphore-bundle": "~1.4"
   }
 }
 ```
@@ -49,7 +49,7 @@ Then add the bundle in AppKernel :
     {
         $bundles = array(
             // ...
-            // use of  monolog
+            // use of monolog
             new Symfony\Bundle\MonologBundle\MonologBundle(),
             // the bundle itself
             new Kitpages\SemaphoreBundle\KitpagesSemaphoreBundle(),
@@ -59,7 +59,7 @@ Then add the bundle in AppKernel :
 
 The add configuration in your config.yml.
 
-default values are 0.1s for pooling sleep time and 5s for deadlock duration
+Default values are 0.1s for pooling sleep time and 5s for deadlock duration
 
 ```yaml
 kitpages_semaphore:
