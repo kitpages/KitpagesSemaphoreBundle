@@ -3,3 +3,4 @@ vendor/
 composer.lock
 Tests/app/cache
 Tests/app/data
+Tests/app/logs
