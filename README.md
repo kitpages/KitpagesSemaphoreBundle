@@ -24,7 +24,7 @@ $semaphoreManager->release("my_semaphore_name");
 
 ## Features
 
-* shared semaphore between several parallel php processes (saved in DB for the moment)
+* shared semaphore between several parallel php processes (using the filesystem)
 * deadlock detection : consider a semaphore as dead after a configurable duration
 * logging system for deadlock on a specific channel in monolog (channel : kitpages_semaphore)
 * stopwatch to see semaphore usage in the timeline of the symfony debug toolbar
